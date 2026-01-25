@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardiology Guidelines AI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --bg-hover: #475569;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #475569;
+            --class-i: #10b981;
+            --class-iia: #3b82f6;
+            --class-iib: #f59e0b;
+            --class-iii: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+        header {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 50%, #1e1e3f 100%);
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .logo { font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.5)); }
+
+        header h1 {
+            font-size: 2.2rem; font-weight: 700; margin-bottom: 8px;
+            background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        header p { color: var(--text-secondary); font-size: 1.1rem; }
+
+        .stats-bar { display: flex; justify-content: center; gap: 40px; margin-top: 25px; flex-wrap: wrap; }
+
+        .stat {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 15px 25px; background: rgba(255,255,255,0.05);
+            border-radius: 12px; border: 1px solid var(--border);
+        }
+
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--accent-blue); }
+        .stat-label { font-size: 0.85rem; color: var(--text-secondary); }
+
+        .tabs {
+            display: flex; gap: 8px; margin-bottom: 25px; padding: 5px;
+            background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1; padding: 14px 20px; background: transparent; border: none;
+            border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 500;
+            color: var(--text-secondary); transition: all 0.2s;
+        }
+
+        .tab:hover { color: var(--text-primary); background: var(--bg-card); }
+
+        .tab.active {
+            background: var(--accent-blue); color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .panel {
+            display: none; background: var(--bg-secondary);
+            border-radius: 16px; padding: 30px; border: 1px solid var(--border);
+        }
+
+        .panel.active { display: block; }
+
+        textarea, input, select {
+            width: 100%; padding: 16px; border: 2px solid var(--border);
+            border-radius: 12px; font-size: 1rem; font-family: inherit;
+            background: var(--bg-card); color: var(--text-primary); resize: vertical;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none; border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        textarea::placeholder, input::placeholder { color: var(--text-muted); }
+
+        button {
+            padding: 14px 28px; background: var(--accent-blue); color: white;
+            border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #2563eb; transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        button:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .examples { margin-top: 20px; }
+        .examples h4 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .example-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+
+        .example-chip {
+            padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 25px; font-size: 0.9rem; cursor: pointer;
+            transition: all 0.2s; color: var(--text-secondary);
+        }
+
+        .example-chip:hover {
+            background: var(--bg-hover); border-color: var(--accent-blue); color: var(--text-primary);
+        }
+
+        .answer-box { margin-top: 30px; display: none; }
+        .answer-box.visible { display: block; }
+
+        .answer-header {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border);
+        }
+
+        .answer-header h3 { font-size: 1.1rem; color: var(--text-primary); }
+
+        .answer-content {
+            background: var(--bg-card); border-radius: 12px; padding: 25px;
+            border-left: 4px solid var(--accent-blue); line-height: 1.8; white-space: pre-wrap;
+        }
+
+        .sources { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+        .sources h4 {
+            font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .source-item {
+            background: var(--bg-card); padding: 15px; border-radius: 10px;
+            margin-bottom: 10px; border: 1px solid var(--border);
+        }
+
+        .source-title { font-weight: 600; color: var(--accent-blue); margin-bottom: 5px; font-size: 0.95rem; }
+        .source-excerpt { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+
+        .upload-zone {
+            border: 2px dashed var(--border); border-radius: 16px; padding: 50px;
+            text-align: center; transition: all 0.2s; cursor: pointer; background: var(--bg-card);
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-zone input[type="file"] { display: none; }
+        .upload-icon { font-size: 3.5rem; margin-bottom: 15px; opacity: 0.8; }
+        .upload-zone p { color: var(--text-secondary); }
+        .upload-zone strong { color: var(--text-primary); }
+
+        .selected-files { margin-top: 25px; display: none; }
+        .selected-files.visible { display: block; }
+
+        .file-list { max-height: 200px; overflow-y: auto; margin-bottom: 20px; }
+
+        .file-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; background: var(--bg-card); border-radius: 10px;
+            margin-bottom: 8px; border: 1px solid var(--border);
+        }
+
+        .file-item .filename {
+            font-weight: 500; color: var(--text-primary);
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .remove-btn { background: var(--accent-red); padding: 6px 14px; font-size: 0.85rem; }
+
+        .upload-progress { margin-top: 25px; display: none; }
+        .upload-progress.visible { display: block; }
+
+        .progress-item {
+            padding: 14px 18px; margin-bottom: 10px; border-radius: 10px;
+            font-size: 0.95rem; display: flex; align-items: center; gap: 10px;
+        }
+
+        .progress-item.processing { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
+        .progress-item.success { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .progress-item.error { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .progress-item.exists { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+
+        .guidelines-list { display: flex; flex-direction: column; gap: 15px; }
+
+        .guideline-card {
+            padding: 25px; background: var(--bg-card); border-radius: 14px;
+            border: 1px solid var(--border); transition: all 0.2s;
+        }
+
+        .guideline-card:hover {
+            border-color: var(--accent-blue); transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .guideline-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+
+        .guideline-info h3 { font-size: 1.15rem; margin-bottom: 8px; color: var(--text-primary); }
+
+        .guideline-meta {
+            font-size: 0.85rem; color: var(--text-muted);
+            display: flex; flex-wrap: wrap; gap: 20px;
+        }
+
+        .guideline-meta span { display: flex; align-items: center; gap: 6px; }
+
+        .guideline-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn-pptx { background: var(--accent-purple); padding: 10px 18px; font-size: 0.9rem; }
+        .btn-pptx:hover { background: #7c3aed; }
+
+        .btn-topic { background: var(--accent-green); padding: 10px 18px; font-size: 0.9rem; }
+        .btn-topic:hover { background: #059669; }
+
+        .btn-delete {
+            background: transparent; border: 1px solid var(--accent-red);
+            color: var(--accent-red); padding: 10px 18px; font-size: 0.9rem;
+        }
+
+        .btn-delete:hover { background: var(--accent-red); color: white; }
+
+        .guideline-sections {
+            margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);
+            font-size: 0.85rem; color: var(--text-muted); max-height: 60px; overflow: hidden;
+        }
+
+        .empty-state { text-align: center; padding: 60px; color: var(--text-muted); }
+        .empty-state .icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+
+        .loading {
+            display: inline-block; width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: white; animation: spin 0.8s linear infinite; margin-right: 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+        }
+
+        .modal-overlay.visible { display: flex; }
+
+        .modal {
+            background: var(--bg-secondary); border-radius: 16px; padding: 30px;
+            max-width: 500px; width: 90%; border: 1px solid var(--border);
+        }
+
+        .modal h3 { margin-bottom: 20px; }
+
+        .topic-list {
+            display: flex; flex-direction: column; gap: 10px;
+            max-height: 300px; overflow-y: auto; margin-bottom: 20px;
+        }
+
+        .topic-btn {
+            text-align: left; padding: 15px 20px; background: var(--bg-card);
+            border: 1px solid var(--border); color: var(--text-primary);
+        }
+
+        .topic-btn:hover { border-color: var(--accent-blue); background: var(--bg-hover); }
+
+        .modal-close { background: var(--bg-card); color: var(--text-secondary); width: 100%; }
+
+        @media (max-width: 600px) {
+            .tabs { flex-direction: column; }
+            .stats-bar { gap: 15px; }
+            .stat { padding: 12px 20px; }
+            .guideline-header { flex-direction: column; gap: 15px; }
+            .guideline-actions { width: 100%; }
+            .guideline-actions button { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">🫀</div>
+        <h1>Cardiology Guidelines AI</h1>
+        <p>Evidence-based answers from ACC, AHA & ESC guidelines</p>
+        <div class="stats-bar">
+            <div class="stat">
+                <span class="stat-value" id="statGuidelines">0</span>
+                <span class="stat-label">Guidelines</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="statChunks">0</span>
+                <span class="stat-label">Indexed Chunks</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="statPages">0</span>
+                <span class="stat-label">Pages</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab="ask">💬 Ask Question</button>
+            <button class="tab" data-tab="upload">📤 Upload Guidelines</button>
+            <button class="tab" data-tab="library">📚 Guidelines Library</button>
+        </div>
+
+        <!-- ASK PANEL -->
+        <div id="ask" class="panel active">
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <textarea id="question" rows="4" placeholder="Ask any cardiology question...
+
+Example: What are the Class I recommendations for catheter ablation in atrial fibrillation?"></textarea>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <select id="modelSelect" style="flex: 1; max-width: 300px;">
+                        <optgroup label="Anthropic Claude">
+                            <option value="claude-opus-4-20250514">🧠 Opus 4 (Smartest)</option>
+                            <option value="claude-sonnet-4-20250514-thinking">🤔 Sonnet 4 Deep Think</option>
+                            <option value="claude-sonnet-4-20250514" selected>⚡ Sonnet 4 (Balanced)</option>
+                            <option value="claude-haiku-3-5-20241022">🚀 Haiku 3.5 (Fastest)</option>
+                        </optgroup>
+                        <optgroup label="OpenAI">
+                            <option value="gpt-5.2">🌟 GPT-5.2 (Latest)</option>
+                        </optgroup>
+                    </select>
+                    <button id="askBtn" onclick="askQuestion()" style="flex: 1;">🔍 Search Guidelines</button>
+                </div>
+            </div>
+
+            <div class="examples">
+                <h4>Quick Questions</h4>
+                <div class="example-chips">
+                    <span class="example-chip" onclick="setQuestion('What are the Class I indications for catheter ablation in AFib?')">AFib Ablation</span>
+                    <span class="example-chip" onclick="setQuestion('When should I anticoagulate a patient with atrial fibrillation?')">AFib Anticoagulation</span>
+                    <span class="example-chip" onclick="setQuestion('What are the guideline-directed medications for HFrEF?')">HFrEF Medications</span>
+                    <span class="example-chip" onclick="setQuestion('What is the recommended LDL target for secondary prevention?')">LDL Targets</span>
+                    <span class="example-chip" onclick="setQuestion('What are the indications for ICD placement?')">ICD Indications</span>
+                </div>
+            </div>
+
+            <div id="answerBox" class="answer-box">
+                <div class="answer-header">
+                    <span style="font-size: 1.5rem;">📋</span>
+                    <h3>Guideline-Based Answer</h3>
+                    <div id="usageInfo" style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 15px;"></div>
+                </div>
+                <div id="answerContent" class="answer-content"></div>
+                <div id="sourcesSection" class="sources">
+                    <h4>📚 Sources Referenced</h4>
+                    <div id="sourcesList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UPLOAD PANEL -->
+        <div id="upload" class="panel">
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" accept=".pdf" multiple>
+                <div class="upload-icon">📄</div>
+                <p><strong>Click to select</strong> or drag & drop PDF files</p>
+                <p style="margin-top: 10px; font-size: 0.9rem;">Upload ACC, AHA, ESC, or other cardiology guidelines</p>
+            </div>
+
+            <div id="selectedFiles" class="selected-files">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <strong style="font-size: 1.1rem;">📁 Selected Files (<span id="fileCount">0</span>)</strong>
+                    <button style="background: var(--bg-card); padding: 8px 16px; font-size: 0.85rem;" onclick="clearAllFiles()">Clear All</button>
+                </div>
+                <div id="fileList" class="file-list"></div>
+                <button id="uploadBtn" onclick="uploadFiles()" style="width: 100%;">📤 Upload & Process All</button>
+            </div>
+
+            <div id="uploadProgress" class="upload-progress">
+                <strong style="display: block; margin-bottom: 15px;">⏳ Processing...</strong>
+                <div id="progressList"></div>
+            </div>
+        </div>
+
+        <!-- LIBRARY PANEL -->
+        <div id="library" class="panel">
+            <div id="guidelinesList" class="guidelines-list">
+                <div class="empty-state">
+                    <div class="icon">📚</div>
+                    <p>Loading guidelines...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Topic Selection Modal -->
+    <div class="modal-overlay" id="topicModal">
+        <div class="modal">
+            <h3>📑 Select Topic to Summarize</h3>
+            <div class="topic-list" id="topicList">
+                <button class="topic-btn" onclick="generateTopicPPTX('Ablation')">🔥 Catheter Ablation</button>
+                <button class="topic-btn" onclick="generateTopicPPTX('Anticoagulation')">💊 Anticoagulation</button>
+                <button class="topic-btn" onclick="generateTopicPPTX('Rate Control')">❤️ Rate Control</button>
+                <button class="topic-btn" onclick="generateTopicPPTX('Rhythm Control')">⚡ Rhythm Control</button>
+                <button class="topic-btn" onclick="generateTopicPPTX('Heart Failure')">🫀 Heart Failure & AFib</button>
+                <button class="topic-btn" onclick="generateTopicPPTX('Stroke Prevention')">🧠 Stroke Prevention</button>
+                <button class="topic-btn" onclick="generateTopicPPTX('Risk Factors')">⚠️ Risk Factor Management</button>
+            </div>
+            <button class="modal-close" onclick="closeTopicModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let selectedFiles = [];
+        let currentGuidelineId = null;
+
+        loadStats();
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+                if (tab.dataset.tab === 'library') loadGuidelines();
+            });
+        });
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/stats`);
+                const stats = await response.json();
+                document.getElementById('statGuidelines').textContent = stats.total_guidelines || 0;
+                document.getElementById('statChunks').textContent = stats.total_chunks || 0;
+                document.getElementById('statPages').textContent = stats.total_pages || 0;
+            } catch (e) { console.error('Error loading stats:', e); }
+        }
+
+        function setQuestion(q) { document.getElementById('question').value = q; }
+
+        async function askQuestion() {
+            const question = document.getElementById('question').value.trim();
+            const model = document.getElementById('modelSelect').value;
+            if (!question) return;
+
+            const btn = document.getElementById('askBtn');
+            const answerBox = document.getElementById('answerBox');
+            const answerContent = document.getElementById('answerContent');
+            const sourcesList = document.getElementById('sourcesList');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Searching guidelines...';
+            answerBox.classList.remove('visible');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, model })
+                });
+
+                const data = await response.json();
+                answerContent.textContent = data.answer || data.error || 'No answer received';
+                
+                // Show usage/cost info
+                const usageInfo = document.getElementById('usageInfo');
+                if (data.usage) {
+                    usageInfo.innerHTML = `
+                        <span>🤖 ${data.model || 'Unknown'}</span>
+                        <span>📊 ${data.usage.total_tokens.toLocaleString()} tokens</span>
+                        <span style="color: var(--accent-green);">💰 $${data.usage.cost_usd.toFixed(4)}</span>
+                    `;
+                } else {
+                    usageInfo.innerHTML = '';
+                }
+                
+                sourcesList.innerHTML = '';
+                if (data.sources && data.sources.length > 0) {
+                    data.sources.forEach((source, idx) => {
+                        const div = document.createElement('div');
+                        div.className = 'source-item';
+                        div.innerHTML = `
+                            <div class="source-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div class="source-title">${source.guideline}${source.year ? ` (${source.year})` : ''}${source.page ? ` • Page ${source.page}` : ''}</div>
+                                <button class="source-toggle" id="toggle-btn-${idx}" onclick="toggleSource(${idx})" style="background: var(--accent-blue); padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; min-width: 110px;">
+                                    📄 Show Text
+                                </button>
+                            </div>
+                            <div class="source-full" id="source-full-${idx}" style="display: none; margin-top: 12px; padding: 20px; background: linear-gradient(135deg, var(--bg-primary) 0%, #1a2332 100%); border-radius: 10px; font-size: 0.9rem; line-height: 1.8; max-height: 400px; overflow-y: auto; border: 1px solid var(--accent-blue); box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                                <div style="color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">📋 Original Guideline Text</div>
+                                <div style="color: var(--text-primary);">${cleanPdfText(source.full_text || source.excerpt)}</div>
+                            </div>
+                        `;
+                        sourcesList.appendChild(div);
+                    });
+                }
+
+                answerBox.classList.add('visible');
+            } catch (error) {
+                answerContent.textContent = 'Error: ' + error.message;
+                answerBox.classList.add('visible');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔍 Search Guidelines';
+            }
+        }
+
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => { uploadZone.classList.remove('dragover'); });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            addFiles(Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf'));
+        });
+        fileInput.addEventListener('change', (e) => { addFiles(Array.from(e.target.files)); });
+
+        function addFiles(files) {
+            files.forEach(file => {
+                if (!selectedFiles.find(f => f.name === file.name)) selectedFiles.push(file);
+            });
+            updateFileList();
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            const fileCount = document.getElementById('fileCount');
+            const selectedFilesDiv = document.getElementById('selectedFiles');
+
+            if (selectedFiles.length === 0) { selectedFilesDiv.classList.remove('visible'); return; }
+
+            selectedFilesDiv.classList.add('visible');
+            fileCount.textContent = selectedFiles.length;
+
+            fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="file-item">
+                    <span class="filename">📄 ${file.name}</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) { selectedFiles.splice(index, 1); updateFileList(); }
+
+        function clearAllFiles() {
+            selectedFiles = [];
+            fileInput.value = '';
+            updateFileList();
+            document.getElementById('uploadProgress').classList.remove('visible');
+        }
+
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+
+            const btn = document.getElementById('uploadBtn');
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressList = document.getElementById('progressList');
+
+            btn.disabled = true;
+            progressDiv.classList.add('visible');
+            
+            // Show all files as pending
+            progressList.innerHTML = selectedFiles.map((f, i) => 
+                `<div class="progress-item" style="background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border);" id="progress-${f.name.replace(/[^a-z0-9]/gi, '_')}">⏸️ Queued: ${f.name}</div>`
+            ).join('');
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // Process files ONE AT A TIME
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const id = `progress-${file.name.replace(/[^a-z0-9]/gi, '_')}`;
+                const el = document.getElementById(id);
+                
+                // Update button to show progress
+                btn.innerHTML = `<span class="loading"></span>Processing ${i + 1} of ${selectedFiles.length}...`;
+                
+                // Mark current file as processing
+                if (el) {
+                    el.className = 'progress-item processing';
+                    el.innerHTML = `⏳ Processing (${i + 1}/${selectedFiles.length}): ${file.name}`;
+                }
+
+                // Upload single file
+                const formData = new FormData();
+                formData.append('files', file);
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/upload`, { 
+                        method: 'POST', 
+                        body: formData 
+                    });
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error(`Server error (${response.status})`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.results && data.results[0]) {
+                        const result = data.results[0];
+                        if (el) {
+                            if (result.status === 'success') {
+                                el.className = 'progress-item success';
+                                el.innerHTML = `✅ ${file.name}: ${result.pages} pages, ${result.chunks} chunks indexed`;
+                                successCount++;
+                            } else if (result.status === 'exists') {
+                                el.className = 'progress-item exists';
+                                el.innerHTML = `ℹ️ ${file.name}: Already exists in database`;
+                                successCount++;
+                            } else {
+                                el.className = 'progress-item error';
+                                el.innerHTML = `❌ ${file.name}: ${result.message || 'Unknown error'}`;
+                                failCount++;
+                            }
+                        }
+                    } else if (data.error) {
+                        if (el) {
+                            el.className = 'progress-item error';
+                            el.innerHTML = `❌ ${file.name}: ${data.error}`;
+                        }
+                        failCount++;
+                    }
+                } catch (error) {
+                    if (el) {
+                        el.className = 'progress-item error';
+                        el.innerHTML = `❌ ${file.name}: ${error.message}`;
+                    }
+                    failCount++;
+                }
+            }
+
+            // Done - show summary
+            selectedFiles = [];
+            updateFileList();
+            loadStats();
+            
+            btn.disabled = false;
+            btn.innerHTML = '📤 Upload & Process All';
+            
+            // Add summary at top
+            const summary = document.createElement('div');
+            summary.className = `progress-item ${failCount === 0 ? 'success' : 'exists'}`;
+            summary.innerHTML = `📊 Complete: ${successCount} succeeded, ${failCount} failed`;
+            progressList.insertBefore(summary, progressList.firstChild);
+        }
+
+        async function loadGuidelines() {
+            const list = document.getElementById('guidelinesList');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/guidelines`);
+                const data = await response.json();
+
+                if (!data.guidelines || data.guidelines.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <p>No guidelines uploaded yet</p>
+                            <p style="margin-top: 10px; font-size: 0.9rem;">Go to "Upload Guidelines" to add PDFs</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = data.guidelines.map(g => `
+                    <div class="guideline-card">
+                        <div class="guideline-header">
+                            <div class="guideline-info">
+                                <h3>📋 ${g.name}</h3>
+                                <div class="guideline-meta">
+                                    ${g.year ? `<span>📅 ${g.year}</span>` : ''}
+                                    ${g.source ? `<span>🏛️ ${g.source}</span>` : ''}
+                                    <span>📄 ${g.page_count || '?'} pages</span>
+                                    <span>🧩 ${g.chunk_count} chunks</span>
+                                    ${g.file_size_mb ? `<span>💾 ${g.file_size_mb} MB</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="guideline-actions">
+                                <button class="btn-pptx" onclick="generateFullPPTX(${g.id}, '${g.name.replace(/'/g, "\\'")}')">📊 Full Summary</button>
+                                <button class="btn-topic" onclick="openTopicModal(${g.id})">📑 By Topic</button>
+                                <button class="btn-delete" onclick="deleteGuideline(${g.id}, '${g.name.replace(/'/g, "\\'")}')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                        ${g.extracted_headers ? `<div class="guideline-sections"><strong>Sections:</strong> ${g.extracted_headers.split('\n').slice(0, 8).join(' • ')}</div>` : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Error loading guidelines: ${error.message}</p></div>`;
+            }
+        }
+
+        async function deleteGuideline(id, name) {
+            if (!confirm(`Delete "${name}"?\n\nThis will remove the guideline and all its indexed content.`)) return;
+            try {
+                await fetch(`${API_BASE}/api/delete/${id}`, { method: 'DELETE' });
+                loadGuidelines();
+                loadStats();
+            } catch (error) { alert('Error deleting: ' + error.message); }
+        }
+
+        async function generateFullPPTX(id, name) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Generating...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/generate-pptx/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${name.replace(/[^a-z0-9]/gi, '_')}_Summary.pptx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.error || 'Failed to generate PPTX'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📊 Full Summary';
+            }
+        }
+
+        function openTopicModal(guidelineId) {
+            currentGuidelineId = guidelineId;
+            document.getElementById('topicModal').classList.add('visible');
+        }
+
+        function closeTopicModal() {
+            document.getElementById('topicModal').classList.remove('visible');
+            currentGuidelineId = null;
+        }
+
+        async function generateTopicPPTX(topic) {
+            closeTopicModal();
+            
+            if (!currentGuidelineId) return;
+            
+            // Show loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'pptxLoading';
+            loadingDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;z-index:2000;';
+            loadingDiv.innerHTML = '<div style="text-align:center;color:white;"><span class="loading" style="width:40px;height:40px;border-width:4px;"></span><p style="margin-top:20px;">Generating ' + topic + ' Summary...</p></div>';
+            document.body.appendChild(loadingDiv);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/generate-pptx/${currentGuidelineId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic })
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${topic.replace(/[^a-z0-9]/gi, '_')}_Summary.pptx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.error || 'Failed to generate PPTX'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                document.body.removeChild(document.getElementById('pptxLoading'));
+            }
+        }
+
+        document.getElementById('question').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQuestion(); }
+        });
+
+        document.getElementById('topicModal').addEventListener('click', (e) => {
+            if (e.target.id === 'topicModal') closeTopicModal();
+        });
+
+        loadGuidelines();
+        
+        // Clean up messy PDF text for display
+        function cleanPdfText(text) {
+            if (!text) return '';
+            return text
+                // Add space before capital letters that follow lowercase (camelCase fix)
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                // Add space after periods if missing
+                .replace(/\.([A-Z])/g, '. $1')
+                // Add space after commas if missing  
+                .replace(/,([A-Za-z])/g, ', $1')
+                // Fix multiple spaces
+                .replace(/\s+/g, ' ')
+                // Clean up weird characters but keep basic punctuation
+                .replace(/[^\x20-\x7E\n.,;:!?()-]/g, ' ')
+                // Add paragraph breaks for readability (after periods followed by space and capital)
+                .replace(/\. ([A-Z])/g, '.<br><br>$1')
+                .trim();
+        }
+        
+        // Toggle source text visibility
+        function toggleSource(idx) {
+            const fullDiv = document.getElementById(`source-full-${idx}`);
+            const btn = document.getElementById(`toggle-btn-${idx}`);
+            if (fullDiv.style.display === 'none') {
+                fullDiv.style.display = 'block';
+                btn.innerHTML = '🙈 Hide Text';
+                btn.style.background = 'var(--accent-purple)';
+            } else {
+                fullDiv.style.display = 'none';
+                btn.innerHTML = '📄 Show Text';
+                btn.style.background = 'var(--accent-blue)';
+            }
+        }
+    </script>
+</body>
+</html>
