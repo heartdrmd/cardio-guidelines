@@ -1,0 +1,18 @@
+# Cardiology Guidelines AI Server
+Flask==3.0.0
+flask-cors==4.0.0
+gunicorn==23.0.0
+
+# Database - use psycopg for Python 3.13 compatibility
+psycopg[binary]==3.2.4
+pgvector==0.3.6
+
+# PDF processing
+pdfplumber==0.11.4
+
+# PPTX generation
+python-pptx==1.0.2
+
+# AI
+anthropic==0.42.0
+requests==2.32.3
