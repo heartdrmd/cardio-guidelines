@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardiology Guidelines AI</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #e8e8ed;
+        }
+
+        .tab.active {
+            background: #1a365d;
+            color: white;
+        }
+
+        .panel {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Ask Panel */
+        .question-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e8e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #1a365d;
+        }
+
+        button {
+            padding: 14px 28px;
+            background: #1a365d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2c5282;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .answer-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .answer-box.visible {
+            display: block;
+        }
+
+        .answer-content {
+            white-space: pre-wrap;
+            line-height: 1.7;
+        }
+
+        .sources {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .sources h4 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .source-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid #1a365d;
+        }
+
+        .source-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .source-excerpt {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Upload Panel */
+        .upload-zone {
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #1a365d;
+            background: #f0f4f8;
+        }
+
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-form {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .upload-form.visible {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e8e8ed;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1a365d;
+        }
+
+        .selected-file {
+            background: #e8f4f8;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .upload-status.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .upload-status.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Library Panel */
+        .guidelines-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .guideline-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #1a365d;
+        }
+
+        .guideline-info h3 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .guideline-meta {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .guideline-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Quick examples */
+        .examples {
+            margin-top: 20px;
+        }
+
+        .examples h4 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .example-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-chip {
+            padding: 8px 14px;
+            background: #e8e8ed;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .example-chip:hover {
+            background: #d0d0d5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🫀 Cardiology Guidelines AI</h1>
+        <p>Evidence-based answers from ACC & ESC guidelines</p>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab="ask">Ask Question</button>
+            <button class="tab" data-tab="upload">Upload Guidelines</button>
+            <button class="tab" data-tab="library">Guidelines Library</button>
+        </div>
+
+        <!-- ASK PANEL -->
+        <div id="ask" class="panel active">
+            <div class="question-form">
+                <textarea id="question" placeholder="Ask a cardiology question...
+
+Examples:
+• What are the Class I recommendations for HFrEF?
+• When should I anticoagulate a patient with AFib?
+• What's the target LDL for secondary prevention?"></textarea>
+                <button id="askBtn" onclick="askQuestion()">
+                    Ask Question
+                </button>
+            </div>
+
+            <div class="examples">
+                <h4>Quick questions:</h4>
+                <div class="example-chips">
+                    <span class="example-chip" onclick="setQuestion('What are Class I indications for ICD?')">ICD indications</span>
+                    <span class="example-chip" onclick="setQuestion('When to anticoagulate AFib?')">AFib anticoagulation</span>
+                    <span class="example-chip" onclick="setQuestion('HFrEF medication recommendations')">HFrEF meds</span>
+                    <span class="example-chip" onclick="setQuestion('TAVR vs SAVR indications')">TAVR vs SAVR</span>
+                    <span class="example-chip" onclick="setQuestion('Statin therapy guidelines')">Statin therapy</span>
+                </div>
+            </div>
+
+            <div id="answerBox" class="answer-box">
+                <div id="answerContent" class="answer-content"></div>
+                <div id="sourcesSection" class="sources">
+                    <h4>📚 Sources</h4>
+                    <div id="sourcesList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UPLOAD PANEL -->
+        <div id="upload" class="panel">
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" accept=".pdf">
+                <div class="upload-icon">📄</div>
+                <p><strong>Click to select</strong> or drag & drop a PDF</p>
+                <p style="font-size: 0.9rem; color: #666; margin-top: 8px;">ACC, ESC, or other cardiology guidelines</p>
+            </div>
+
+            <div id="uploadForm" class="upload-form">
+                <div class="selected-file">
+                    <span id="selectedFileName"></span>
+                    <button onclick="clearFile()" style="padding: 5px 10px; font-size: 0.8rem;">✕</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Guideline Name *</label>
+                    <input type="text" id="guidelineName" placeholder="e.g., 2023 ACC/AHA Atrial Fibrillation Guideline">
+                </div>
+
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="number" id="guidelineYear" placeholder="e.g., 2023" min="2000" max="2030">
+                </div>
+
+                <div class="form-group">
+                    <label>Source</label>
+                    <input type="text" id="guidelineSource" placeholder="e.g., ACC, ESC, AHA">
+                </div>
+
+                <button id="uploadBtn" onclick="uploadFile()">
+                    Upload & Process
+                </button>
+
+                <div id="uploadStatus" class="upload-status"></div>
+            </div>
+        </div>
+
+        <!-- LIBRARY PANEL -->
+        <div id="library" class="panel">
+            <div id="guidelinesList" class="guidelines-list">
+                <div class="empty-state">Loading guidelines...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let selectedFile = null;
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+
+                if (tab.dataset.tab === 'library') {
+                    loadGuidelines();
+                }
+            });
+        });
+
+        // Set example question
+        function setQuestion(q) {
+            document.getElementById('question').value = q;
+        }
+
+        // Ask question
+        async function askQuestion() {
+            const question = document.getElementById('question').value.trim();
+            if (!question) return;
+
+            const btn = document.getElementById('askBtn');
+            const answerBox = document.getElementById('answerBox');
+            const answerContent = document.getElementById('answerContent');
+            const sourcesList = document.getElementById('sourcesList');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Searching guidelines...';
+            answerBox.classList.remove('visible');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+
+                answerContent.textContent = data.answer || data.error || 'No answer received';
+                
+                // Show sources
+                sourcesList.innerHTML = '';
+                if (data.sources && data.sources.length > 0) {
+                    data.sources.forEach(source => {
+                        const div = document.createElement('div');
+                        div.className = 'source-item';
+                        div.innerHTML = `
+                            <div class="source-title">${source.guideline}${source.year ? ` (${source.year})` : ''}${source.page ? `, p.${source.page}` : ''}</div>
+                            <div class="source-excerpt">${source.excerpt}</div>
+                        `;
+                        sourcesList.appendChild(div);
+                    });
+                }
+
+                answerBox.classList.add('visible');
+            } catch (error) {
+                answerContent.textContent = 'Error: ' + error.message;
+                answerBox.classList.add('visible');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Ask Question';
+            }
+        }
+
+        // File upload handling
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            document.getElementById('selectedFileName').textContent = file.name;
+            document.getElementById('guidelineName').value = file.name.replace('.pdf', '').replace(/_/g, ' ');
+            document.getElementById('uploadForm').classList.add('visible');
+            document.getElementById('uploadStatus').className = 'upload-status';
+        }
+
+        function clearFile() {
+            selectedFile = null;
+            fileInput.value = '';
+            document.getElementById('uploadForm').classList.remove('visible');
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+
+            const btn = document.getElementById('uploadBtn');
+            const status = document.getElementById('uploadStatus');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('name', document.getElementById('guidelineName').value);
+            formData.append('year', document.getElementById('guidelineYear').value);
+            formData.append('source', document.getElementById('guidelineSource').value);
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Processing PDF...';
+            status.className = 'upload-status';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    status.textContent = `✅ Successfully processed! ${data.pages} pages, ${data.chunks} chunks indexed.`;
+                    status.className = 'upload-status success';
+                    clearFile();
+                } else if (data.status === 'exists') {
+                    status.textContent = '⚠️ This guideline has already been uploaded.';
+                    status.className = 'upload-status success';
+                } else {
+                    status.textContent = '❌ Error: ' + (data.error || data.message || 'Upload failed');
+                    status.className = 'upload-status error';
+                }
+            } catch (error) {
+                status.textContent = '❌ Error: ' + error.message;
+                status.className = 'upload-status error';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Upload & Process';
+            }
+        }
+
+        // Load guidelines library
+        async function loadGuidelines() {
+            const list = document.getElementById('guidelinesList');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/guidelines`);
+                const data = await response.json();
+
+                if (!data.guidelines || data.guidelines.length === 0) {
+                    list.innerHTML = '<div class="empty-state">No guidelines uploaded yet.<br>Go to "Upload Guidelines" to add your first PDF.</div>';
+                    return;
+                }
+
+                list.innerHTML = data.guidelines.map(g => `
+                    <div class="guideline-card">
+                        <div class="guideline-info">
+                            <h3>${g.name}</h3>
+                            <div class="guideline-meta">
+                                ${g.year ? `Year: ${g.year} • ` : ''}
+                                ${g.source ? `Source: ${g.source} • ` : ''}
+                                ${g.chunk_count} chunks indexed
+                            </div>
+                        </div>
+                        <div class="guideline-actions">
+                            <button class="btn-delete" onclick="deleteGuideline(${g.id}, '${g.name.replace(/'/g, "\\'")}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                list.innerHTML = `<div class="empty-state">Error loading guidelines: ${error.message}</div>`;
+            }
+        }
+
+        async function deleteGuideline(id, name) {
+            if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+            try {
+                await fetch(`${API_BASE}/api/delete/${id}`, { method: 'DELETE' });
+                loadGuidelines();
+            } catch (error) {
+                alert('Error deleting: ' + error.message);
+            }
+        }
+
+        // Enter key to submit
+        document.getElementById('question').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        });
+
+        // Load guidelines on page load
+        loadGuidelines();
+    </script>
+</body>
+</html>
